@@ -1,21 +1,27 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useTransactionsStore = create((set) => ({
+const useTransactionsStore = create(persist((set) => ({
   transactions: [],
+  editingTransaction: null,
   balance: 0,
   income: 0,
   expense: 0,
+  setEditingTransaction: (transaction) =>
+    set({ editingTransaction: transaction }),
+  clearEditingTransaction: () =>
+    set({ editingTransaction: null }),
   addTransaction: (transaction) =>
     set((state) => ({
       transactions: [...state.transactions, transaction],
       balance: state.balance + transaction.amount,
       income:
-        transaction.amount > 0
+        transaction.type === 'income'
           ? state.income + transaction.amount
           : state.income,
       expense:
-        transaction.amount < 0
-          ? state.expense - transaction.amount
+        transaction.type === 'expense'
+          ? state.expense + transaction.amount
           : state.expense,
     })),
   removeTransaction: (id) =>
@@ -77,6 +83,8 @@ const useTransactionsStore = create((set) => ({
             .amount
           : state.expense,
     })),
+}), {
+  name: 'transactions'
 }));
 
 export default useTransactionsStore;
