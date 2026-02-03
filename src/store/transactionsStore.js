@@ -7,6 +7,16 @@ const useTransactionsStore = create(persist((set) => ({
   balance: 0,
   income: 0,
   expense: 0,
+  filters: {
+    search: '',
+    type: '',
+    category: '',
+  },
+  filteredTransactions: [],
+  filterTransactions: ({ search, type, category }) =>
+    set((state) => ({ filteredTransactions: state.transactions.filter((transaction) => (search ? transaction.description.toLowerCase().includes(search.toLowerCase()) : true) && (type ? transaction.type === type : true) && (category ? transaction.category === category : true)), filters: { ...state.filters, search, type, category } })),
+  clearFilteredTransactions: () =>
+    set((state) => ({ filteredTransactions: state.transactions, filters: { search: '', type: '', category: '' } })),
   setEditingTransaction: (transaction) =>
     set({ editingTransaction: transaction }),
   clearEditingTransaction: () =>
@@ -27,6 +37,9 @@ const useTransactionsStore = create(persist((set) => ({
   removeTransaction: (id) =>
     set((state) => ({
       transactions: state.transactions.filter(
+        (transaction) => transaction.id !== id
+      ),
+      filteredTransactions: state.filteredTransactions.filter(
         (transaction) => transaction.id !== id
       ),
       balance:
@@ -56,6 +69,9 @@ const useTransactionsStore = create(persist((set) => ({
       transactions: state.transactions.map((transaction) =>
         transaction.id === id ? updatedTransaction : transaction
       ),
+      filteredTransactions: state.filteredTransactions.map((transaction) =>
+        transaction.id === id ? updatedTransaction : transaction
+      ),
       balance:
         state.balance +
         updatedTransaction.amount -
@@ -83,6 +99,8 @@ const useTransactionsStore = create(persist((set) => ({
             .amount
           : state.expense,
     })),
+  setTransactions: (transactions) =>
+    set({ transactions, filteredTransactions: transactions }),
 }), {
   name: 'transactions'
 }));

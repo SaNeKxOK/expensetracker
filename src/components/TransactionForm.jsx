@@ -6,14 +6,14 @@ import useTransactionsStore from '../store/transactionsStore';
 import transactionSchema from '../validations/transactions';
 import { Button, Input, RadioGroup, Select, DateInput } from './shared';
 
-const typeOptions = [
+export const typeOptions = [
     { label: 'Income', value: 'income' },
     { label: 'Expense', value: 'expense' },
 ]
 
-const typeCategories = ["Food", "Transportation", "Housing", "Utilities", "Entertainment", "Other"];
+const categories = ["Food", "Transportation", "Housing", "Utilities", "Entertainment", "Other"];
 
-const typeCategoriesOptions = typeCategories.map((category) => ({ label: category, value: category }));
+export const typeCategoriesOptions = categories.map((category) => ({ label: category, value: category }));
 
 const initialValues = {
     description: '',
@@ -24,7 +24,7 @@ const initialValues = {
 }
 
 const TransactionForm = () => {
-    const { addTransaction, editingTransaction, clearEditingTransaction, updateTransaction } = useTransactionsStore();
+    const { addTransaction, editingTransaction, clearEditingTransaction, updateTransaction, clearFilteredTransactions } = useTransactionsStore();
     const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: initialValues, resolver: zodResolver(transactionSchema) });
 
     useEffect(() => {
@@ -42,6 +42,7 @@ const TransactionForm = () => {
         }
         reset(initialValues);
         clearEditingTransaction();
+        clearFilteredTransactions();
     }
 
     return <form className="flex flex-col gap-4 border-2 border-gray-300 rounded-md p-4" onSubmit={handleSubmit(onSubmit)}>
