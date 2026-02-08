@@ -6,9 +6,9 @@ import TransactionList from './components/TransactionList';
 const App = () => {
   return (
     <MainLayout>
-        <Balance />
-        <TransactionForm />
-        <TransactionList />
+      <Balance />
+      <TransactionForm />
+      <TransactionList />
     </MainLayout>
   );
 };
