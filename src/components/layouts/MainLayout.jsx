@@ -1,24 +1,27 @@
 import { Wallet } from 'lucide-react';
-import PropTypes from 'prop-types';
+import ThemeToggle from '../ThemeToggle';
 import DataMigration from '../DataMigration';
 
 const MainLayout = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg flex flex-row justify-between items-center">
-        <div className="flex items-center gap-3 py-4 px-4">
-          <Wallet className="w-8 h-8" />
-          <h1 className="text-2xl font-bold tracking-tight">Expense Tracker</h1>
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <Wallet className="w-6 h-6 text-primary" />
+            <h1 className="text-lg font-semibold tracking-tight">
+              Expense Tracker
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <DataMigration />
+            <ThemeToggle />
+          </div>
         </div>
-        <DataMigration />
       </header>
-      <main className="max-w-2xl w-full mx-auto p-4 space-y-6">{children}</main>
+      <main className="max-w-2xl w-full mx-auto p-4 space-y-4">{children}</main>
     </div>
   );
-};
-
-MainLayout.propTypes = {
-  children: PropTypes.node.isRequired,
 };
 
 export default MainLayout;

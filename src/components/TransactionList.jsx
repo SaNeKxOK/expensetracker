@@ -1,62 +1,64 @@
-import useTransactionsStore from '../store/transactionsStore';
-import { PencilIcon, TrashIcon } from 'lucide-react';
-import { Button } from './shared';
-import dayjs from 'dayjs';
-import { Input, Select } from './shared';
-import { typeOptions, typeCategoriesOptions } from './TransactionForm';
-import { useState, useEffect } from 'react';
-const TransactionItem = ({ id, description, amount, type, category, date, editTransaction, deleteTransaction }) => {
-    return <div className="flex flex-row justify-between items-center border-1 border-gray-300 rounded-md p-4">
-        <div>{description}</div>
-        <div>{amount}</div>
-        <div>{type}</div>
-        <div>{category}</div>
-        <div>{dayjs(date).format('DD/MM/YYYY')}</div>
-        <div className="flex flex-row gap-2">
-            <Button onClick={editTransaction}><PencilIcon /></Button>
-            <Button onClick={() => deleteTransaction(id)}><TrashIcon /></Button>
-        </div>
-    </div>
-}
+import { useState, useMemo } from 'react';
+import useTransactionStore from '../store/transactionsStore';
+import TransactionFilters from './TransactionFilters';
+import TransactionItem from './TransactionItem';
+import Pagination from './Pagination';
 
-const TransactionFilters = () => {
-    const { filters, filterTransactions } = useTransactionsStore();
-    return <div className="flex flex-row gap-2 mb-4">
-        <Input label="Search" value={filters.search} onChange={(e) => filterTransactions({ ...filters, search: e.target.value })} />
-        <Select label="Type" options={typeOptions} value={filters.type || ''} defaultLabel="All" onChange={(e) => filterTransactions({ ...filters, type: e.target.value })} />
-        <Select label="Category" options={typeCategoriesOptions} value={filters.category || ''} defaultLabel="All" onChange={(e) => filterTransactions({ ...filters, category: e.target.value })} />
-    </div>
-}
-
-const pageSize = 1;
-
-const Pagination = ({ page, setPage, totalPages }) => {
-    return <div className="flex flex-row gap-2 justify-end">
-        <Button onClick={() => setPage(page - 1)} disabled={page === 1}>Previous</Button>
-        {new Array(totalPages).fill(0).map((_, index) => (
-            <Button key={index} onClick={() => setPage(index + 1)} disabled={page === index + 1}>{index + 1}</Button>
-        ))}
-        <Button onClick={() => setPage(page + 1)} disabled={page === totalPages}>Next</Button>
-    </div>
-}
+const PAGE_SIZE = 5;
 
 const TransactionList = () => {
-    const { filteredTransactions } = useTransactionsStore();
-    const { setEditingTransaction, removeTransaction } = useTransactionsStore();
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
+  const transactions = useTransactionStore((state) => state.transactions);
+  const filters = useTransactionStore((state) => state.filters);
+  const setEditingTransaction = useTransactionStore(
+    (state) => state.setEditingTransaction
+  );
+  const removeTransaction = useTransactionStore(
+    (state) => state.removeTransaction
+  );
+  const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        setTotalPages(Math.ceil(filteredTransactions.length / pageSize));
-    }, [filteredTransactions]);
+  const filtered = useMemo(() => {
+    const { search, type, category } = filters;
+    if (!search && !type && !category) return transactions;
+    return transactions.filter(
+      (t) =>
+        (!search ||
+          t.description.toLowerCase().includes(search.toLowerCase())) &&
+        (!type || t.type === type) &&
+        (!category || t.category === category)
+    );
+  }, [transactions, filters]);
 
-    return <div className="flex flex-col gap-2">
-        <TransactionFilters />
-        {filteredTransactions.slice((page - 1) * pageSize, page * pageSize).map((transaction) => (
-            <TransactionItem key={transaction.id} {...transaction} editTransaction={setEditingTransaction.bind(null, transaction)} deleteTransaction={removeTransaction} />
-        ))}
-        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  return (
+    <div className="space-y-3">
+      <TransactionFilters />
+      {paged.length === 0 && (
+        <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">
+          No transactions yet
+        </p>
+      )}
+      {paged.map((t) => (
+        <TransactionItem
+          key={t.id}
+          {...t}
+          onEdit={() => setEditingTransaction(t)}
+          onDelete={removeTransaction}
+        />
+      ))}
+      <Pagination
+        page={safePage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
-}
+  );
+};
 
 export default TransactionList;
